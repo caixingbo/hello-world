@@ -101,4 +101,6 @@ func consumer(amqpURI string, exchange string, queue string){
 
 	//没有写入数据，一直等待读，阻塞当前线程，目的是让线程不退出
 	<-forever
+
+	//test push
 }
