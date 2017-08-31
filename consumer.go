@@ -10,18 +10,18 @@ import (
 
 const (
 	//AMQP URI
-	uri          =  "amqp://cxb:dtct2017@101.37.243.50:5672/common"
-	exchangeName =  "ha-vhost-exchange-topic"
+	ha_uri          =  "amqp://cxb:dtct2017@101.37.243.50:5672/common"
+	ha_exchangeName =  "ha-vhost-exchange-topic"
 	//Exchange type - direct|fanout|topic|x-custom
-	exchangeType = "topic"
-	bindingKey = ""
+	ha_exchangeType = "topic"
+	ha_bindingKey = ""
 	//Durable AMQP queue name
-	queueName    = "ha-vhost-queue"//"test-idoall-info"//
+	ha_queueName    = "ha-vhost-queue"//"test-idoall-info"//
 )
 
 //如果存在错误，则输出
 
-func failOnError(err error, msg string) {
+func ha_failOnError(err error, msg string) {
 	if err != nil {
 		log.Fatalf("%s: %s", msg, err)
 		panic(fmt.Sprintf("%s: %s", msg, err))
@@ -30,21 +30,21 @@ func failOnError(err error, msg string) {
 
 func main(){
 	//调用消息接收者
-	consumerExchange(uri, exchangeName,exchangeType,queueName,bindingKey)
+	ha_consumerExchange(ha_uri, ha_exchangeName,ha_exchangeType,ha_queueName,ha_bindingKey)
 }
 
 //接收者方法
-func consumerExchange(amqpURI string, exchange string, exchangeType string, queue string, key string){
+func ha_consumerExchange(amqpURI string, exchange string, exchangeType string, queue string, key string){
 	//建立连接
 	log.Printf("dialing %q", amqpURI)
 	connection, err := amqp.Dial(amqpURI)
-	failOnError(err, "Failed to connect to RabbitMQ")
+	ha_failOnError(err, "Failed to connect to RabbitMQ")
 	defer connection.Close()
 
 	//创建一个Channel
-	log.Printf("got Connection, getting Channel")
+	log.Printf("got Connection, getting Channel %s",key)
 	channel, err := connection.Channel()
-	failOnError(err, "Failed to open a channel")
+	ha_failOnError(err, "Failed to open a channel")
 	defer channel.Close()
 
 	log.Printf("got queue, declaring %q", queue)
@@ -59,11 +59,11 @@ func consumerExchange(amqpURI string, exchange string, exchangeType string, queu
 		false,   // no-wait
 		nil,     // arguments
 	)
-	failOnError(err, "Exchange Declare:")
+	ha_failOnError(err, "Exchange Declare:")
 
 	//创建一个queue
 	q, err := channel.QueueDeclare(
-		queueName, // name
+		ha_queueName, // name
 		true,   // durable
 		false,   // delete when unused
 		false,   // exclusive 当Consumer关闭连接时，这个queue要被deleted
@@ -72,7 +72,7 @@ func consumerExchange(amqpURI string, exchange string, exchangeType string, queu
 	)
 
 
-	failOnError(err, "Failed to declare a queue")
+	ha_failOnError(err, "Failed to declare a queue")
 
 	//每次只取一条消息
 	err = channel.Qos(
@@ -80,7 +80,7 @@ func consumerExchange(amqpURI string, exchange string, exchangeType string, queu
 		0,     // prefetch size
 		false, // global
 	)
-	failOnError(err, "Failed to set QoS")
+	ha_failOnError(err, "Failed to set QoS")
 
 
 	//绑定到exchange
@@ -98,8 +98,8 @@ func consumerExchange(amqpURI string, exchange string, exchangeType string, queu
 			exchange,   // sourceExchange
 			false,      // noWait
 			nil,        // arguments
-		);
-		failOnError(err, "Failed to bind a queue")
+		)
+		ha_failOnError(err, "Failed to bind a queue")
 	}
 
 
@@ -114,7 +114,7 @@ func consumerExchange(amqpURI string, exchange string, exchangeType string, queu
 		false,  // no-wait
 		nil,    // args
 	)
-	failOnError(err, "Failed to register a consumer")
+	ha_failOnError(err, "Failed to register a consumer")
 
 	//创建一个channel
 	forever := make(chan bool)
@@ -145,7 +145,7 @@ func consumerExchange(amqpURI string, exchange string, exchangeType string, queu
 		case err:=<-conErr :
 			println(err.Reason)
 			time.Sleep(time.Second * 10)
-			consumerExchange(uri, exchangeName,exchangeType,queueName,bindingKey)
+			ha_consumerExchange(ha_uri, ha_exchangeName,ha_exchangeType,ha_queueName,ha_bindingKey)
 		}
 
 	}()
