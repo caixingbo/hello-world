@@ -9,15 +9,16 @@ import (
 	"strconv"
 )
 
+
 const (
 	//AMQP URI
 	uri          =  "amqp://cxb:dtct2017@101.37.243.50:5672/common"
-	//Durable AMQP exchange name
 	exchangeName =  "ha-vhost-exchange-topic"
+	//Exchange type - direct|fanout|topic|x-custom
 	exchangeType = "topic"
-	routingKey = ""
+	bindingKey = ""
 	//Durable AMQP queue name
-	queueName    =  "ha-vhost-queue" //"test-idoall-queues-ttt"
+	queueName    = "ha-vhost-queue"
 )
 
 //如果存在错误，则输出
@@ -99,7 +100,7 @@ func publishExchange(amqpURI string, exchange string, exchangeType string, body 
 	// Producer只能发送到exchange，它是不能直接发送到queue的。
 	// 现在我们使用默认的exchange（名字是空字符）。这个默认的exchange允许我们发送给指定的queue。
 	// routing_key就是指定的queue名字。
-	for i:=0 ; i< 1000; i++ {
+	for i:=0 ; i< 100; i++ {
 		err = channel.Publish(
 			exchange,     // exchange
 			severityFrom(os.Args), // routing key
@@ -110,7 +111,8 @@ func publishExchange(amqpURI string, exchange string, exchangeType string, body 
 				//DeliveryMode: amqp.Persistent,
 				ContentType: "text/plain",
 				ContentEncoding: "",
-				Body:        []byte(body+strconv.Itoa(i)),
+				//Body:        []byte(body+strconv.Itoa(i)),
+				Body:[]byte("{\"MsgID\":\"20310\",\"Name\":\"zhangsan\"}"+body+strconv.Itoa(i)),
 			})
 	}
 
