@@ -3,10 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
-	"bytes"
-	"time"
 	"github.com/streadway/amqp"
 	"os"
+	"time"
 )
 
 const (
@@ -139,14 +138,14 @@ func consumerExchange(amqpURI string, exchange string, exchangeType string, queu
 
 	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
 
-
 	conErr := make(chan *amqp.Error)
 	connection.NotifyClose(conErr)
 	go func() {
 		select {
 		case err:=<-conErr :
-			println("reconnect %v",err)
-			channel.Recover(true)
+			println(err.Reason)
+			time.Sleep(time.Second * 10)
+			consumerExchange(uri, exchangeName,exchangeType,queueName,bindingKey)
 		}
 
 	}()
@@ -154,5 +153,4 @@ func consumerExchange(amqpURI string, exchange string, exchangeType string, queu
 	//没有写入数据，一直等待读，阻塞当前线程，目的是让线程不退出
 	<-forever
 
-	//test push
 }
